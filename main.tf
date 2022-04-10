@@ -2,7 +2,7 @@ terraform {
   required_version = "~> 1.1.4"
 
   backend "gcs" {
-    bucket = var.BUCKET
+    bucket = var.bucket
     prefix = "terraform/state"
   }
 }
