@@ -15,7 +15,7 @@ variable "project" {
   description = "Project name"
 }
 
-variable "bucket" {
+variable "BUCKET" {
   type = string
   description = "The name of Google Storage Bucket to create"
 }
