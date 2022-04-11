@@ -66,18 +66,6 @@ resource "google_compute_firewall" "allow_access_from_bastion" {
   source_service_accounts = [module.iap_bastion.service_account]
 }
 
-resource "google_compute_firewall" "allow_https" {
-  name    = "allow-https-rule"
-  network = google_compute_network.network.self_link
-  allow {
-    ports    = ["80"]
-    protocol = "tcp"
-  }
-  target_tags = ["allow-https"]
-  priority    = 1000
-
-}
-
 resource "google_compute_firewall" "https-server" {
   name    = "default-allow-https"
   network = google_compute_network.network.self_link
