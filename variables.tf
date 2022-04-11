@@ -10,12 +10,6 @@ variable "zone" {
   default = "asia-east1-a"
 }
 
-variable "project" {
-  type = string
-  description = "Project name"
-}
+variable "project" {}
 
-variable "bucket" {
-  type = string
-  description = "The name of Google Storage Bucket to create"
-}
+variable "bucket" {}
