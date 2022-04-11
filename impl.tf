@@ -1,20 +1,54 @@
-resource "google_compute_instance" "juice_shop0" {
-  name = "juice-shop-0"
+locals {
+  project_id = var.project
+  network    = "vpc"
+  image      = "ubuntu-2004-focal-v20211212"
+  ssh_user   = ansible
+  private_key_path   = "~/.ssh/ansible_ed25519"
+}
+
+resource "google_compute_instance" "nginx" {
+  count = 2
+  name = "juice-shop"
   zone = "asia-east2"
   machine_type = "f1-micro"
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = local.image
     }
   }
 
   network_interface {
     network = "vpc"
+    access_config {}
+  }
+
+  service_account {
+    email = google_service_account.nginx.email
+    scopes = ["cloud platform"]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["echo Wait until SSH is read"]
+
+    connection {
+      type = "ssh"
+      user = local.ssh_user
+      private_key = file(local.private_key_path)
+      host = google_compute_instance.nginx.network_interface.0.access_config.0.nat_ip
+    }
+  }
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i ${google_compute_instance.nginx.network_interface.0.access_config.0.nat_ip}, --private-key ${local.private_key_path} nginx.yaml"
   }
 
   // Apply the firewall rule to allow external IPs to access this instance
   tags = ["https-server"]
+}
+
+output "nginx_ip" {
+  value = google_compute_instance.nginx.network_interface.0.access_config.0.nat_ip
 }
 
 module "iap_bastion" {
@@ -78,4 +112,21 @@ resource "google_compute_firewall" "https-server" {
   // Allow traffic from everywhere to instances with an https-server tag
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["https-server"]
+}
+
+resource "google_service_account" "nginx" {
+  account_id = "nginx"
+}
+
+resource "google_compute_firewall_" "web" {
+  name    = "web-access"
+  network = local.network
+
+  allow {
+    protocol = "tcp"
+    port = ["80"]
+  }
+
+  source_ranges = "0.0.0.0/20"
+  targets_servirce_accounts = [google_service_account.nginx.email]
 }
