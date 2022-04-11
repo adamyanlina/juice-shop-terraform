@@ -4,8 +4,6 @@ on: workflow_dispatch
 
 env:
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-  TF_VAR_project: ${{ secrets.TF_VAR_PROJECT }}
-  TF_VAR_bucket: ${{ secrets.TF_VAR_BUCKET }}
 
 jobs:
   terraform:
