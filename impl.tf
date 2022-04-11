@@ -1,5 +1,5 @@
 module "network" {
-  source = "modules/network.tf"
+  source = "./modules/network"
 }
 
 module "iap_bastion" {
