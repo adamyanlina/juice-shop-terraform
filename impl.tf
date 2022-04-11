@@ -1,3 +1,22 @@
+resource "google_compute_instance" "juice_shop0" {
+  name = "juice-shop-0"
+  zone = "asia-east2"
+  machine_type = "f1-micro"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
+
+  network_interface {
+    network = "vpc"
+  }
+
+  // Apply the firewall rule to allow external IPs to access this instance
+  tags = ["https-server"]
+}
+
 module "iap_bastion" {
   source = "terraform-google-modules/bastion-host/google"
 
@@ -17,8 +36,8 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_subnetwork" "mgmt_subnet" {
-  region                   = var.region
   project                  = var.project
+  region                   = "asia-east1"
   name                     = "mgmt-subnet"
   ip_cidr_range            = "10.127.0.0/20"
   network                  = google_compute_network.network.self_link
@@ -26,8 +45,8 @@ resource "google_compute_subnetwork" "mgmt_subnet" {
 }
 
 resource "google_compute_subnetwork" "app_subnet" {
-  region                   = var.region
   project                  = var.project
+  region                   = "asia-east2"
   name                     = "app-subnet"
   ip_cidr_range            = "10.70.24.0/24"
   network                  = google_compute_network.network.self_link
@@ -45,4 +64,30 @@ resource "google_compute_firewall" "allow_access_from_bastion" {
 
   # Allow SSH only from IAP Bastion
   source_service_accounts = [module.iap_bastion.service_account]
+}
+
+resource "google_compute_firewall" "allow_https" {
+  name    = "allow-https-rule"
+  network = google_compute_network.network.self_link
+  allow {
+    ports    = ["80"]
+    protocol = "tcp"
+  }
+  target_tags = ["allow-https"]
+  priority    = 1000
+
+}
+
+resource "google_compute_firewall" "https-server" {
+  name    = "default-allow-https"
+  network = google_compute_network.network.self_link
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443"]
+  }
+
+  // Allow traffic from everywhere to instances with an https-server tag
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["https-server"]
 }
