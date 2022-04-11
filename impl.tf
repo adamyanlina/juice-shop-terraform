@@ -7,7 +7,8 @@ module "iap_bastion" {
 
   project = var.project
   zone = var.zone
-  network = [module.network.id]
+  network = [module.network]
+  subnet = "mgmt-subnet"
   members = [
     "adamyanlina97@gmail.com",
   ]
@@ -16,7 +17,7 @@ module "iap_bastion" {
 resource "google_compute_firewall" "allow_access_from_bastion" {
   project = var.project
   name    = "allow-bastion-ssh"
-  network = [module.network.self_link]
+  network = [module.network]
 
   allow {
     protocol = "tcp"
