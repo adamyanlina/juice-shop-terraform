@@ -1,5 +1,6 @@
-resource "google_compute_instance" "juice_shop0" {
-  name = "juice-shop-0"
+resource "google_compute_instance" "juice_shop" {
+  count = 2
+  name = "juice-shop"
   zone = "asia-east2"
   machine_type = "f1-micro"
 
