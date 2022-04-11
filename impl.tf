@@ -7,7 +7,7 @@ module "iap_bastion" {
 
   project = var.project
   zone = var.zone
-  network = [module.network]
+  network = module.network.id
   subnet = "mgmt-subnet"
   members = [
     "adamyanlina97@gmail.com",
